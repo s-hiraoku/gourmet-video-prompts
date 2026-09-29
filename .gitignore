@@ -1,0 +1,7 @@
+# 素材とできた動画はリポジトリに入れない
+/materials/*
+!/materials/.gitkeep
+/output/
+/plan.json
+__pycache__/
+.DS_Store
