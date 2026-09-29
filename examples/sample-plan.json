@@ -1,21 +1,199 @@
 {
   "duration": 15,
+  "theme": {
+    "font": "rounded",
+    "headFont": "dela",
+    "accent": "#FFD23F",
+    "grade": "food"
+  },
   "clips": [
-    {"source": "v3", "in": 3.0, "out": 5.0},
-    {"source": "v1", "in": 1.0, "out": 2.5, "keep_audio": false},
-    {"source": "v2", "in": 2.0, "out": 4.0},
-    {"source": "p1", "duration": 1.5, "motion": "zoom_in"},
-    {"source": "v3", "in": 5.0, "out": 8.0},
-    {"source": "v4", "in": 1.0, "out": 3.0},
-    {"source": "p2", "duration": 1.0, "motion": "none"},
-    {"source": "v3", "in": 8.0, "out": 10.0}
+    {
+      "source": "p1.jpg",
+      "duration": 2.0,
+      "motion": "punch_in",
+      "transition": {
+        "type": "flash"
+      }
+    },
+    {
+      "source": "v1.mp4",
+      "in": 0.5,
+      "duration": 2.0,
+      "motion": "slow_zoom_in",
+      "focus": {
+        "x": 0.4,
+        "y": 0.5
+      },
+      "transition": {
+        "type": "whip",
+        "direction": "left"
+      }
+    },
+    {
+      "source": "v3.mp4",
+      "in": 0,
+      "duration": 2.5,
+      "speed": 0.5,
+      "motion": "none",
+      "transition": {
+        "type": "zoom"
+      }
+    },
+    {
+      "source": "p2.jpg",
+      "duration": 2.0,
+      "motion": "pan_left",
+      "transition": {
+        "type": "slide",
+        "direction": "left"
+      }
+    },
+    {
+      "source": "v1.mp4",
+      "in": 3.0,
+      "duration": 3.0,
+      "motion": "shake",
+      "volume": 0.5,
+      "transition": {
+        "type": "fade"
+      }
+    },
+    {
+      "source": "p1.jpg",
+      "duration": 3.5,
+      "motion": "slow_zoom_out"
+    }
   ],
   "telops": [
-    {"text": "チーズあふれすぎ\nハンバーグ", "start": 0.0, "end": 2.0, "position": "center", "style": "hook"},
-    {"text": "渋谷駅 徒歩5分", "start": 2.0, "end": 3.5, "position": "bottom", "style": "normal"},
-    {"text": "ジュージュー鉄板で登場", "start": 3.5, "end": 5.5, "position": "bottom", "style": "normal"},
-    {"text": "肉汁もすごい", "start": 7.0, "end": 10.0, "position": "center", "style": "accent"},
-    {"text": "ランチはセット+300円", "start": 10.0, "end": 13.0, "position": "bottom", "style": "normal"},
-    {"text": "チーズキッチン ○○\nチーズハンバーグ 1,480円", "start": 13.0, "end": 15.0, "position": "bottom", "style": "info"}
-  ]
+    {
+      "type": "hook",
+      "text": "チーズあふれすぎ\nハンバーグ",
+      "start": 0.0,
+      "end": 2.0,
+      "position": "center"
+    },
+    {
+      "type": "slide",
+      "text": "渋谷駅 徒歩5分",
+      "start": 2.0,
+      "end": 4.0,
+      "position": "upper"
+    },
+    {
+      "type": "onomatopoeia",
+      "text": "とろ〜り",
+      "start": 4.1,
+      "end": 6.2,
+      "x": 0.35,
+      "y": 0.35
+    },
+    {
+      "type": "marker",
+      "text": "肉汁もすごい",
+      "start": 6.5,
+      "end": 8.4,
+      "position": "lower"
+    },
+    {
+      "type": "price",
+      "text": "¥1,480",
+      "sub": "税込",
+      "start": 8.6,
+      "end": 11.2,
+      "x": 0.72,
+      "y": 0.3
+    },
+    {
+      "type": "shake",
+      "text": "ご飯が進む！",
+      "start": 9.0,
+      "end": 11.4,
+      "position": "lower"
+    },
+    {
+      "type": "info",
+      "text": "チーズキッチン ○○",
+      "sub": "渋谷駅 徒歩5分\n11:00〜22:00",
+      "start": 11.5,
+      "end": 15.0,
+      "position": "bottom"
+    },
+    {
+      "type": "cta",
+      "text": "保存して行ってみて",
+      "start": 12.2,
+      "end": 15.0,
+      "position": "upper"
+    }
+  ],
+  "stickers": [
+    {
+      "type": "steam",
+      "start": 0,
+      "end": 2.0,
+      "x": 0.5,
+      "y": 0.6
+    },
+    {
+      "type": "speedlines",
+      "start": 4.1,
+      "end": 4.9,
+      "x": 0.5,
+      "y": 0.5
+    },
+    {
+      "type": "sparkle",
+      "start": 6.5,
+      "end": 8.4,
+      "x": 0.5,
+      "y": 0.5
+    },
+    {
+      "type": "circle",
+      "start": 2.2,
+      "end": 3.9,
+      "x": 0.5,
+      "y": 0.52
+    },
+    {
+      "type": "arrow",
+      "start": 2.4,
+      "end": 3.9,
+      "x": 0.35,
+      "y": 0.52,
+      "rotate": 20
+    },
+    {
+      "type": "hearts",
+      "start": 9.0,
+      "end": 11.0,
+      "x": 0.5,
+      "y": 0.6
+    }
+  ],
+  "sfx": [
+    {
+      "type": "pop",
+      "at": 0.05
+    },
+    {
+      "type": "whoosh",
+      "at": 3.85
+    },
+    {
+      "type": "boing",
+      "at": 4.1
+    },
+    {
+      "type": "ding",
+      "at": 8.6
+    },
+    {
+      "type": "shutter",
+      "at": 11.5
+    }
+  ],
+  "cover": {
+    "time": 1.2
+  }
 }
