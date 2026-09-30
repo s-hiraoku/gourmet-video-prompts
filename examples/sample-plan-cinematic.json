@@ -12,7 +12,7 @@
   ],
   "telops": [
     {"type": "title", "text": "明石で出逢う、\n端正な江戸前", "start": 0.2, "end": 3.0, "vertical": true, "x": 0.8, "y": 0.4},
-    {"type": "title", "text": "鮨の概念が変わる夜", "start": 13.1, "end": 15.0, "position": "upper", "size": 0.8}
+    {"type": "title", "text": "鮨の概念が変わる夜", "start": 13.0, "end": 15.0, "position": "upper", "size": 0.8}
   ],
   "stickers": [{"type": "save_tap", "start": 13.3, "end": 15.0}],
   "cover": {"time": 2.5}

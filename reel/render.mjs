@@ -143,6 +143,30 @@ const main = async () => {
     }
     if (isNum(t.start) && isNum(t.end) && t.end - t.start < 0.8) warn(`${w}: 表示が ${(t.end - t.start).toFixed(2)} 秒と短く、読めない可能性があります。`);
   }
+  // 指示レビュー用の自動チェック（制作方針「指示のレビューと代替案」）
+  const telops = plan.telops ?? [];
+  const RISKY = ['日本一', '世界一', '宇宙一', '絶対', '最強', '最高級', '必ず', '100%', '完璧', '痩せる', '健康に良い', '美肌', '効く', '治る', '業界初', 'No.1', 'ナンバーワン'];
+  for (const [i, t] of telops.entries()) {
+    const hit = RISKY.filter((word) => String(t.text ?? '').includes(word) || String(t.sub ?? '').includes(word));
+    if (hit.length) warn(`telops[${i}]: 「${hit.join('」「')}」は誇大表現・根拠の必要な表現になりやすいです（代替案を検討）。`);
+  }
+  if (total > 0 && !telops.some((t) => isNum(t.start) && t.start <= 1.0)) {
+    warn('最初の1秒以内に出るテロップがありません（フックが弱くなりやすい）。');
+  }
+
+  const closers = [...telops.filter((t) => ['cta', 'info', 'title', 'caption'].includes(t.type)), ...(plan.stickers ?? []).filter((st) => st.type === 'save_tap')];
+  const closing = closers.filter((x) => isNum(x.end) && x.end >= total - 0.3);
+  if (total > 0 && closing.length === 0) warn('最後に締め（CTA・店舗情報・保存タップ）がありません。');
+  else if (closing.length && Math.max(...closing.map((x) => x.end - x.start)) < 2) warn('締め（CTA）の表示が2秒未満です。');
+  for (let f = 0; f < total; f += 0.25) {
+    const n = telops.filter((t) => t.type !== 'label' && t.start <= f && f < t.end).length;
+    if (n >= 3) {
+      warn(`${f.toFixed(2)}秒付近でテロップが ${n} つ同時に出ています（2つまで推奨）。`);
+      break;
+    }
+  }
+
+
   for (const [i, s] of (plan.stickers ?? []).entries()) {
     const w = `stickers[${i}]`;
     checkEnum(w, 'type', s.type, ENUMS.sticker);
