@@ -26,18 +26,26 @@ export type TransitionType =
 
 export type Direction = 'left' | 'right' | 'up' | 'down';
 
-export type Clip = {
+// 1つの素材の見せ方
+export type Pane = {
   source: string; // materials 内のファイル名（例: v3.mp4）
-  type: 'video' | 'photo';
+  type?: 'video' | 'photo';
   in?: number; // 動画: 素材の何秒目から使うか
-  duration: number; // 完成動画での表示秒数（カット点からカット点まで）
   speed?: number; // 0.5 = スロー, 1.5 = 早送り
   motion?: Motion;
   focus?: {x: number; y: number}; // 縦に切り抜くときの中心（0〜1）
   zoom?: number; // 1 = そのまま。1.2 = 寄りで切り抜き
   volume?: number; // 原音の音量 0〜1
   grade?: Grade;
+};
+
+export type Clip = Omit<Pane, 'source'> & {
+  source?: string; // 分割表示（items）のときは不要
+  duration: number; // 完成動画での表示秒数（カット点からカット点まで）
   transition?: {type: TransitionType; duration?: number; direction?: Direction}; // 次のクリップへのつなぎ
+  items?: Pane[]; // 2〜3個指定すると画面を分割して並べる（source は不要）
+  split?: 'stack' | 'side'; // stack = 上下（標準）, side = 左右
+  dividerColor?: string;
 };
 
 export type Position = 'top' | 'upper' | 'center' | 'lower' | 'bottom';
@@ -54,7 +62,8 @@ export type TelopType =
   | 'info' // 店舗情報カード
   | 'cta' // 保存してね
   | 'label' // 小さいタグ（PR、限定など）
-  | 'caption'; // 字幕テロップ：文章をそのまま読ませる（自動折り返し）
+  | 'caption' // 字幕テロップ：文章をそのまま読ませる（自動折り返し）
+  | 'title'; // 上品なメインコピー（ぼかしから浮かぶ・字間が締まる・縦書き可）
 
 export type Telop = {
   type: TelopType;
@@ -70,16 +79,17 @@ export type Telop = {
   accent?: string;
   size?: number; // 文字の大きさ倍率（1 = 標準）
   rotate?: number; // 度
+  vertical?: boolean; // title を縦書きにする
 };
 
-export type StickerType = 'sparkle' | 'steam' | 'circle' | 'arrow' | 'speedlines' | 'hearts';
+export type StickerType = 'sparkle' | 'steam' | 'circle' | 'arrow' | 'speedlines' | 'hearts' | 'save_tap';
 
 export type Sticker = {
   type: StickerType;
   start: number;
   end: number;
-  x: number; // 0〜1
-  y: number;
+  x?: number; // 0〜1（save_tap は省略すると右下）
+  y?: number;
   size?: number; // 1 = 標準
   color?: string;
   rotate?: number; // arrow の向き（度。0 = 右向き）

@@ -1,0 +1,19 @@
+{
+  "duration": 15,
+  "theme": {"font": "mincho", "headFont": "mincho", "accent": "#E9C46A", "grade": "warm"},
+  "clips": [
+    {"source": "v1.mp4", "in": 1.2, "duration": 3.0, "motion": "slow_zoom_in", "focus": {"x": 0.45, "y": 0.55}, "transition": {"type": "fade", "duration": 0.5}},
+    {"source": "v2.mp4", "in": 0.0, "duration": 4.0, "motion": "pan_down"},
+    {"source": "v3.mp4", "in": 0.5, "duration": 1.3, "motion": "slow_zoom_in"},
+    {"source": "v4.mp4", "in": 0.8, "duration": 1.3, "motion": "slow_zoom_in"},
+    {"source": "v5.mp4", "in": 0.3, "duration": 1.4, "motion": "slow_zoom_in", "transition": {"type": "fade", "duration": 0.4}},
+    {"items": [{"source": "v6.mp4", "in": 0.5, "focus": {"x": 0.5, "y": 0.6}}, {"source": "p1.jpg", "motion": "slow_zoom_out"}], "split": "stack", "dividerColor": "#E9C46A", "duration": 2.0, "transition": {"type": "fade", "duration": 0.5}},
+    {"source": "v7.mp4", "in": 0.0, "duration": 2.0, "motion": "slow_zoom_out"}
+  ],
+  "telops": [
+    {"type": "title", "text": "明石で出逢う、\n端正な江戸前", "start": 0.2, "end": 3.0, "vertical": true, "x": 0.8, "y": 0.4},
+    {"type": "title", "text": "鮨の概念が変わる夜", "start": 13.1, "end": 15.0, "position": "upper", "size": 0.8}
+  ],
+  "stickers": [{"type": "save_tap", "start": 13.3, "end": 15.0}],
+  "cover": {"time": 2.5}
+}

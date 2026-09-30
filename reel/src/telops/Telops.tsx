@@ -1,5 +1,5 @@
 import React from 'react';
-import {interpolate, random, useCurrentFrame, useVideoConfig} from 'remotion';
+import {Easing, interpolate, random, useCurrentFrame, useVideoConfig} from 'remotion';
 import {fontFamily, fontWeight} from '../fonts';
 import {telopAnchor, telopFont} from '../theme';
 import type {Telop, Theme} from '../types';
@@ -330,6 +330,79 @@ const Caption: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
   );
 };
 
+// 上品なメインコピー：文字がぼかしから浮かび上がり、字間がゆっくり締まる。金の細線つき。vertical で縦書き
+const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
+  const vertical = !!t.vertical;
+  const px = fitPx(96 * c.size, t.text, vertical ? 1000 : 920, 1.35);
+  const all = chars(t.text.replace(/\n/g, ''));
+  const perChar = Math.max(1, Math.min(3, 24 / Math.max(1, all.length)));
+  const spacing = interpolate(c.f, [0, 45], [0.42, 0.2], {extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic)});
+  const rule = interpolate(c.f, [4, 28], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.inOut(Easing.cubic)});
+  const e = exitStyle(c, 10);
+  let idx = 0;
+  const line = (key: string) => (
+    <div
+      key={key}
+      style={{
+        background: `linear-gradient(${vertical ? '180deg' : '90deg'}, transparent, ${c.accent}, transparent)`,
+        ...(vertical ? {width: 2, height: px * 5, transform: `scaleY(${rule})`} : {height: 2, width: px * 6, transform: `scaleX(${rule})`}),
+      }}
+    />
+  );
+  return (
+    <div
+      style={{
+        opacity: e.opacity,
+        display: 'flex',
+        flexDirection: vertical ? 'row' : 'column',
+        alignItems: 'center',
+        gap: px * 0.45,
+      }}
+    >
+      {line('a')}
+      <div
+        style={{
+          writingMode: vertical ? 'vertical-rl' : 'horizontal-tb',
+          fontSize: px,
+          lineHeight: 1.5,
+          letterSpacing: `${spacing}em`,
+          color: c.color,
+          textShadow: '0 2px 18px rgba(0,0,0,0.55), 0 0 2px rgba(0,0,0,0.4)',
+          whiteSpace: 'pre',
+        }}
+      >
+        {lines(t.text).map((l, li) => (
+          <div key={li}>
+            {chars(l).map((g, gi) => {
+              const k = interpolate(c.f - idx++ * perChar, [0, 14], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+              return (
+                <span key={gi} style={{opacity: k, filter: `blur(${(1 - k) * 10}px)`, ...(isEmoji(g) ? emojiStyle : {})}}>
+                  {g}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {t.sub ? (
+        <div
+          style={{
+            fontSize: px * 0.3,
+            letterSpacing: '0.35em',
+            color: c.accent,
+            opacity: interpolate(c.f, [20, 34], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}),
+            writingMode: vertical ? 'vertical-rl' : 'horizontal-tb',
+            textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+          }}
+        >
+          {t.sub}
+        </div>
+      ) : null}
+      {line('b')}
+    </div>
+  );
+};
+
 const PinIcon: React.FC<{size: number; color: string}> = ({size, color}) => (
   <svg width={size} height={size} viewBox="0 0 24 24">
     <path
@@ -495,6 +568,8 @@ export const TelopView: React.FC<Props> = ({t, theme}) => {
         return <Label t={t} c={c} />;
       case 'caption':
         return <Caption t={t} c={c} />;
+      case 'title':
+        return <Title t={t} c={c} />;
       default:
         return <Pop t={t} c={c} />;
     }

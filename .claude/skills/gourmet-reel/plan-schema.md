@@ -33,6 +33,15 @@
 | grade | | `food` `warm` `fresh` `moody` `none`（標準は theme.grade） |
 | transition | | 次のクリップへのつなぎ `{type, duration?, direction?}`。type: `cut` `fade` `slide` `wipe` `flip` `clock_wipe` `whip` `zoom` `flash`、direction: `left` `right` `up` `down` |
 
+### 画面分割（2〜3品を並べる）
+`source` の代わりに `items` を書く。各 item は `source` `in` `speed` `motion` `focus` `zoom` `volume` `grade` を持てる。
+```json
+{"items": [{"source": "v5.mp4", "in": 1.0}, {"source": "p3.jpg", "motion": "slow_zoom_out"}], "split": "stack", "dividerColor": "#E9C46A", "duration": 2.5}
+```
+- `split`: `stack`（上下・標準） / `side`（左右）。2つ目以降は少し遅れてワイプで現れる。背景は1つ目のぼかし。
+- 原音は1つ目だけ（2つ目以降は `volume` 0。鳴らしたい時は指定）。
+- 上下分割は1枠が横長（1080×960）になるので、`focus` で料理の中心を合わせる。
+
 つなぎはカット点をまたいで半分ずつ重なるので、合計の長さは変わらない。
 動画で前につなぎがある場合、`in` より少し前（つなぎの半分 × speed）から映る。
 
@@ -48,6 +57,7 @@
 | font / color / accent | | テーマを上書き |
 | size | | 大きさ倍率（標準 1）。長い文は自動で縮む |
 | rotate | | 傾き（度） |
+| vertical | | `title` を縦書きにする（右寄せなら x 0.8 前後） |
 
 | type | 見た目・動き | 使いどころ |
 |---|---|---|
@@ -62,6 +72,7 @@
 | info | ピン付きの白カード（text=店名, sub=駅・時間など） | 締めの店舗情報 |
 | cta | しおりアイコン付きのボタン | 「保存して行ってみて」 |
 | label | 小さい枠付きタグ | PR、限定、数量限定 |
+| title | 上品なメインコピー。文字がぼかしから浮かび、字間がゆっくり締まる。金の細線つき。`vertical: true` で縦書き、`sub` で小さい添え書き | 高級店の冒頭・締めのコピー |
 | caption | 半透明の帯に文章。1文字ずつふわっと出る。長い行は自動で縮小・バランスよく折り返し（標準位置 `lower`） | 字幕テロップ。構成案のテロップ、高級店のナレーション的な文 |
 
 ## stickers
@@ -74,6 +85,7 @@
 | arrow | 矢印が (x, y) を指す。rotate で向き（0 = 右向きに指す） |
 | speedlines | 漫画の集中線（x, y が中心）。0.5〜0.8秒だけ |
 | hearts | ハートがふわっと上がる |
+| save_tap | しおり（保存）アイコンが出て、指がタップ → 塗りつぶし＋波紋。x, y を省略すると右下（0.86, 0.78）。1.3秒以上表示 |
 
 ## sfx
 `{type, at, volume?}`。type: `pop`（ポン） `whoosh`（シュッ） `ding`（チーン） `shutter`（カシャ） `boing`（ボヨン）

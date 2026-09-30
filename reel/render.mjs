@@ -23,8 +23,8 @@ const ENUMS = {
   transition: ['cut', 'fade', 'slide', 'wipe', 'flip', 'clock_wipe', 'whip', 'zoom', 'flash'],
   direction: ['left', 'right', 'up', 'down'],
   position: ['top', 'upper', 'center', 'lower', 'bottom'],
-  telop: ['hook', 'pop', 'slide', 'marker', 'typewriter', 'shake', 'onomatopoeia', 'price', 'info', 'cta', 'label', 'caption'],
-  sticker: ['sparkle', 'steam', 'circle', 'arrow', 'speedlines', 'hearts'],
+  telop: ['hook', 'pop', 'slide', 'marker', 'typewriter', 'shake', 'onomatopoeia', 'price', 'info', 'cta', 'label', 'caption', 'title'],
+  sticker: ['sparkle', 'steam', 'circle', 'arrow', 'speedlines', 'hearts', 'save_tap'],
   sfx: ['pop', 'whoosh', 'ding', 'shutter', 'boing'],
   font: ['dela', 'rounded', 'maru', 'gothic', 'kaku', 'mincho', 'pop', 'hand', 'rocknroll'],
 };
@@ -71,35 +71,46 @@ const main = async () => {
 
   const usedFiles = new Set();
   let total = 0;
-  for (const [i, c] of (plan.clips ?? []).entries()) {
-    const w = `clips[${i}]`;
+  // 1つの素材（clip そのもの、または分割表示の items の1つ）をチェック
+  const checkPane = async (w, c, duration) => {
     const file = path.join(materials, c.source ?? '');
     const ext = path.extname(c.source ?? '').toLowerCase();
     if (!c.source || !fs.existsSync(file)) {
       err(`${w}: 素材 ${c.source} が materials にありません。`);
-      continue;
+      return;
     }
     usedFiles.add(c.source);
     const type = c.type ?? (PHOTO_EXT.has(ext) ? 'photo' : 'video');
     c.type = type;
     if (type === 'photo' && !PHOTO_EXT.has(ext)) err(`${w}: 写真は jpg / png / webp にしてください（HEIC は analyze.py で変換）。`);
     if (type === 'video' && !VIDEO_EXT.has(ext)) err(`${w}: 動画の形式 ${ext} には対応していません。`);
-    if (!isNum(c.duration) || c.duration <= 0) err(`${w}.duration は 0 より大きい数値にしてください。`);
     checkEnum(w, 'motion', c.motion, ENUMS.motion);
     checkEnum(w, 'grade', c.grade, ENUMS.grade);
+    if (c.focus && !(isNum(c.focus.x) && isNum(c.focus.y) && c.focus.x >= 0 && c.focus.x <= 1 && c.focus.y >= 0 && c.focus.y <= 1)) {
+      err(`${w}.focus は {x: 0〜1, y: 0〜1} で指定してください。`);
+    }
+    if (type === 'video' && isNum(duration)) {
+      const meta = await getVideoMetadata(file);
+      const need = (c.in ?? 0) + duration * (c.speed ?? 1);
+      if (need > meta.durationInSeconds + 0.05) {
+        err(`${w}: ${c.source} は ${meta.durationInSeconds.toFixed(2)} 秒しかありませんが、${(c.in ?? 0)}秒から ${need.toFixed(2)} 秒まで使おうとしています。`);
+      }
+    }
+  };
+
+  for (const [i, c] of (plan.clips ?? []).entries()) {
+    const w = `clips[${i}]`;
+    if (!isNum(c.duration) || c.duration <= 0) err(`${w}.duration は 0 より大きい数値にしてください。`);
     if (c.transition) {
       checkEnum(`${w}.transition`, 'type', c.transition.type, ENUMS.transition);
       checkEnum(`${w}.transition`, 'direction', c.transition.direction, ENUMS.direction);
     }
-    if (c.focus && !(isNum(c.focus.x) && isNum(c.focus.y) && c.focus.x >= 0 && c.focus.x <= 1 && c.focus.y >= 0 && c.focus.y <= 1)) {
-      err(`${w}.focus は {x: 0〜1, y: 0〜1} で指定してください。`);
-    }
-    if (type === 'video' && isNum(c.duration)) {
-      const meta = await getVideoMetadata(file);
-      const need = (c.in ?? 0) + c.duration * (c.speed ?? 1);
-      if (need > meta.durationInSeconds + 0.05) {
-        err(`${w}: ${c.source} は ${meta.durationInSeconds.toFixed(2)} 秒しかありませんが、${(c.in ?? 0)}秒から ${need.toFixed(2)} 秒まで使おうとしています。`);
-      }
+    if (c.items !== undefined) {
+      if (!Array.isArray(c.items) || c.items.length < 2 || c.items.length > 3) err(`${w}.items は2〜3個にしてください。`);
+      checkEnum(w, 'split', c.split, ['stack', 'side']);
+      for (const [j, item] of (c.items ?? []).entries()) await checkPane(`${w}.items[${j}]`, item, c.duration);
+    } else {
+      await checkPane(w, c, c.duration);
     }
     total += isNum(c.duration) ? c.duration : 0;
   }
@@ -136,7 +147,7 @@ const main = async () => {
     const w = `stickers[${i}]`;
     checkEnum(w, 'type', s.type, ENUMS.sticker);
     inRange(w, s.start, s.end);
-    if (!isNum(s.x) || !isNum(s.y)) err(`${w}: x / y（0〜1）が必要です。`);
+    if (s.type !== 'save_tap' && (!isNum(s.x) || !isNum(s.y))) err(`${w}: x / y（0〜1）が必要です。`);
   }
   for (const [i, s] of (plan.sfx ?? []).entries()) {
     checkEnum(`sfx[${i}]`, 'type', s.type, ENUMS.sfx);

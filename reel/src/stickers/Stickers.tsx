@@ -165,6 +165,74 @@ const Hearts: React.FC<{c: Ctx; seed: string}> = ({c, seed}) => (
   </>
 );
 
+// 保存ボタンをタップするアニメーション（しおりが出る → 指が来てタップ → しおりが塗られて波紋）
+// 指のアイコンは Material Icons「touch_app」（Apache License 2.0）
+const HAND = 'M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z';
+
+const SaveTap: React.FC<{c: Ctx}> = ({c}) => {
+  const s = c.size;
+  const icon = 96 * s;
+  const appear = spring({frame: c.f, fps: c.fps, config: {damping: 14}});
+  const TAP = 20;
+  const approach = spring({frame: c.f - 6, fps: c.fps, config: {damping: 16, stiffness: 120}});
+  const press = interpolate(c.f, [TAP - 3, TAP, TAP + 4], [0, 1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  const filled = c.f >= TAP;
+  const pop = filled ? spring({frame: c.f - TAP, fps: c.fps, config: {damping: 8, stiffness: 220}}) : 0;
+  const ripple = interpolate(c.f, [TAP, TAP + 16], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  const leave = interpolate(c.f, [TAP + 10, TAP + 22], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  const handSize = 150 * s;
+  const hx = (1 - approach) * 180 * s + leave * 120 * s;
+  const hy = (1 - approach) * 240 * s + leave * 160 * s;
+  const bookmark = 'M6 3h12v18l-6-4.5L6 21z';
+  return (
+    <div style={{position: 'absolute', left: c.x, top: c.y, opacity: fadeOut(c)}}>
+      <div
+        style={{
+          position: 'absolute',
+          left: -icon,
+          top: -icon,
+          width: icon * 2,
+          height: icon * 2,
+          borderRadius: '50%',
+          border: `${4 * s}px solid ${c.color}`,
+          transform: `scale(${0.5 + ripple * 1.1})`,
+          opacity: (1 - ripple) * (filled ? 1 : 0),
+        }}
+      />
+      <svg
+        width={icon}
+        height={icon}
+        viewBox="0 0 24 24"
+        style={{
+          position: 'absolute',
+          left: -icon / 2,
+          top: -icon / 2,
+          overflow: 'visible',
+          transform: `scale(${appear * (1 - 0.15 * press) * (filled ? 0.85 + 0.15 * pop : 1)})`,
+          filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.45))',
+        }}
+      >
+        <path d={bookmark} fill={filled ? c.color : 'none'} stroke={c.color} strokeWidth={2} strokeLinejoin="round" />
+      </svg>
+      <svg
+        width={handSize}
+        height={handSize}
+        viewBox="0 0 24 24"
+        style={{
+          position: 'absolute',
+          left: -handSize * 0.47 + hx,
+          top: -handSize * 0.12 + hy,
+          transform: `scale(${1 - 0.1 * press})`,
+          opacity: approach * (1 - leave),
+          filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.5))',
+        }}
+      >
+        <path d={HAND} fill="#FFFFFF" stroke="#1A1A1A" strokeWidth={0.6} />
+      </svg>
+    </div>
+  );
+};
+
 const DEFAULT_COLOR: Record<Sticker['type'], string> = {
   sparkle: '#FFF6C8',
   steam: '#FFFFFF',
@@ -172,6 +240,7 @@ const DEFAULT_COLOR: Record<Sticker['type'], string> = {
   arrow: '#FFFFFF',
   speedlines: '#FFFFFF',
   hearts: '#FF6B8B',
+  save_tap: '#FFFFFF',
 };
 
 export const StickerView: React.FC<{s: Sticker}> = ({s}) => {
@@ -181,8 +250,9 @@ export const StickerView: React.FC<{s: Sticker}> = ({s}) => {
     f,
     len: durationInFrames,
     fps,
-    x: s.x * W,
-    y: s.y * H,
+    // 保存タップは指定がなければ右下（インスタの保存ボタン付近）
+    x: (s.x ?? (s.type === 'save_tap' ? 0.86 : 0.5)) * W,
+    y: (s.y ?? (s.type === 'save_tap' ? 0.78 : 0.5)) * H,
     size: s.size ?? 1,
     color: s.color ?? DEFAULT_COLOR[s.type],
   };
@@ -200,6 +270,8 @@ export const StickerView: React.FC<{s: Sticker}> = ({s}) => {
       return <SpeedLines c={c} />;
     case 'hearts':
       return <Hearts c={c} seed={seed} />;
+    case 'save_tap':
+      return <SaveTap c={c} />;
     default:
       return null;
   }
