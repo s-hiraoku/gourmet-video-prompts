@@ -1,0 +1,13 @@
+# 素材・作業ファイル・完成動画はリポジトリに入れない
+/materials/*
+!/materials/.gitkeep
+/work/
+/output/
+__pycache__/
+.DS_Store
+
+# Remotion
+/reel/node_modules/
+/reel/public/materials/
+/reel/public/fonts/
+/reel/out/

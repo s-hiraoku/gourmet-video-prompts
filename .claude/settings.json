@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/setup.sh\" >/dev/null 2>&1 || echo 'setup.sh failed; run bash scripts/setup.sh'"}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "dela": {
+    "module": "DelaGothicOne",
+    "weight": "400"
+  },
+  "rounded": {
+    "module": "MPLUSRounded1c",
+    "weight": "800"
+  },
+  "maru": {
+    "module": "ZenMaruGothic",
+    "weight": "900"
+  },
+  "gothic": {
+    "module": "NotoSansJP",
+    "weight": "900"
+  },
+  "kaku": {
+    "module": "ZenKakuGothicNew",
+    "weight": "900"
+  },
+  "mincho": {
+    "module": "ShipporiMincho",
+    "weight": "800"
+  },
+  "pop": {
+    "module": "MochiyPopOne",
+    "weight": "400"
+  },
+  "hand": {
+    "module": "YuseiMagic",
+    "weight": "400"
+  },
+  "rocknroll": {
+    "module": "RocknRollOne",
+    "weight": "400"
+  },
+  "emoji": {
+    "module": "NotoColorEmoji",
+    "weight": "400"
+  }
+}
