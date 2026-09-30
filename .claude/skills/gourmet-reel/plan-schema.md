@@ -29,7 +29,7 @@
 | motion | | `none` `slow_zoom_in` `slow_zoom_out` `punch_in`（冒頭でグッと寄る） `pan_left` `pan_right` `pan_up` `pan_down` `shake`（衝撃）。写真の標準は `slow_zoom_in` |
 | focus | | 縦に切り抜くときの中心 `{x, y}`（0〜1）。横長素材では料理の位置に必ず合わせる |
 | zoom | | 1.0〜1.6。寄りで切り抜く |
-| volume | | 原音 0〜1（標準 1） |
+| volume | | 原音 0〜1（標準 1）。カットの頭と終わりは自動で短くフェードする |
 | grade | | `food` `warm` `fresh` `moody` `none`（標準は theme.grade） |
 | transition | | 次のクリップへのつなぎ `{type, duration?, direction?}`。type: `cut` `fade` `slide` `wipe` `flip` `clock_wipe` `whip` `zoom` `flash`、direction: `left` `right` `up` `down` |
 
@@ -92,5 +92,7 @@
 
 ## その他
 - `bgm`: `{file, volume?, start?}`（materials にある音楽ファイル。インスタの曲を使う場合は入れない）
-- `cover`: `{time}` → その瞬間を `output/cover.jpg` に書き出す
+- `cover`: `{time, telops?}` → その瞬間を `output/cover.jpg` に書き出す。`telops` を書くと、動画のテロップの代わりにカバー専用の文字が入る（動画には出ない）
+  - 例: `{"time": 1.9, "telops": [{"type": "title", "text": "人生で一番の\n江戸前すし", "sub": "兵庫・明石　店名", "position": "top", "y": 0.21}]}`
+  - プロフィールの一覧では縦 3:4 に切り抜かれるので、文字は y 0.15〜0.85 の間に置く
 - `theme.font` / `headFont`: `dela`（極太） `rounded`（丸ゴ） `maru`（やわらか丸ゴ） `gothic`（ゴシック） `kaku`（すっきりゴシック） `mincho`（明朝） `pop`（ポップ） `hand`（手書き風） `rocknroll`（元気）

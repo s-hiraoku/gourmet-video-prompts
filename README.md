@@ -18,6 +18,8 @@ Instagram のグルメリールを、**Claude が素材を見て選び、モー�
 - **日本語フォント9種類**：極太、丸ゴシック、明朝、手書き風 など。お店のジャンルに合わせて選ぶ
 - **納品物**：`output/reel.mp4`（完成動画）、`output/cover.jpg`（カバー画像）、`output/caption.md`（キャプション・ハッシュタグ）
 - Claude が完成動画をコマ送りで見直し、テロップのかぶりやはみ出しを直してから渡す
+- 720p などの低画質素材は自動で高画質化（ノイズ除去＋拡大＋シャープ）、iPhone の HDR 動画も色を正しく変換
+- 文字入りのカバー画像も作成
 
 ## 使い方
 
@@ -67,6 +69,7 @@ Claude が見直して修正 → 完成
 | `templates/input-template.md` | 依頼するときの入力テンプレート |
 | `examples/` | 入力の記入例と plan.json の例 |
 | `scripts/analyze.py` | 素材・完成動画のコマ一覧と音量を出す |
+| `scripts/enhance.py` | 1080p 未満の動画を高画質化する |
 | `scripts/setup.sh` | 初回セットアップ |
 | `reel/` | 動画を書き出す Remotion プロジェクト |
 | `materials/` `work/` `output/` | 素材・作業ファイル・完成品（Git には入りません） |

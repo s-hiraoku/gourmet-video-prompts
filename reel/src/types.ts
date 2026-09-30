@@ -130,5 +130,6 @@ export type Plan = {
   stickers?: Sticker[];
   sfx?: Sfx[];
   bgm?: {file: string; volume?: number; start?: number};
-  cover?: {time: number};
+  cover?: {time: number; telops?: Telop[]}; // telops を書くとカバー画像だけに入る文字（動画には出ない）
+  _cover?: boolean; // render.mjs がカバー画像を書き出すときに付ける（手で書かない）
 };

@@ -3,6 +3,7 @@
 //   node reel/render.mjs plan.json                 動画を書き出す（output/reel.mp4）
 //   node reel/render.mjs plan.json --check         中身のチェックだけ
 //   node reel/render.mjs plan.json --stills 0.5,3  指定秒の静止画だけ書き出す（確認用・速い）
+//   node reel/render.mjs plan.json --cover         カバー画像だけ書き出す
 //   オプション: --out 出力先.mp4 / --materials 素材フォルダ
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
@@ -231,6 +232,22 @@ const main = async () => {
   const serveUrl = await bundle({entryPoint: path.join(REEL_DIR, 'src', 'index.ts'), publicDir: path.join(REEL_DIR, 'public')});
   const composition = await selectComposition({serveUrl, id: 'Reel', inputProps: plan, browserExecutable});
 
+  // カバー画像（cover.telops があればその文字入り）。props はコンポジション選択時に確定するので選び直す
+  const renderCover = async (dir = path.join(ROOT, 'output')) => {
+    if (!plan.cover || !isNum(plan.cover.time)) return;
+    const coverOut = path.join(dir, 'cover.jpg');
+    const coverProps = {...plan, _cover: true};
+    const coverComposition = await selectComposition({serveUrl, id: 'Reel', inputProps: coverProps, browserExecutable});
+    const frame = Math.min(coverComposition.durationInFrames - 1, Math.round(plan.cover.time * fps));
+    fs.mkdirSync(dir, {recursive: true});
+    await renderStill({serveUrl, composition: coverComposition, inputProps: coverProps, frame, output: coverOut, imageFormat: 'jpeg', jpegQuality: 95, browserExecutable});
+    console.log(`カバー画像: ${path.relative(ROOT, coverOut)}`);
+  };
+  if (args.includes('--cover')) {
+    await renderCover();
+    return;
+  }
+
   const stills = opt('--stills');
   if (stills) {
     const dir = path.join(ROOT, 'output', 'stills');
@@ -271,12 +288,7 @@ const main = async () => {
   });
   console.log(`完成: ${path.relative(ROOT, out)}`);
 
-  if (plan.cover && isNum(plan.cover.time)) {
-    const coverOut = path.join(path.dirname(out), 'cover.jpg');
-    const frame = Math.min(composition.durationInFrames - 1, Math.round(plan.cover.time * fps));
-    await renderStill({serveUrl, composition, inputProps: plan, frame, output: coverOut, imageFormat: 'jpeg', jpegQuality: 95, browserExecutable});
-    console.log(`カバー画像: ${path.relative(ROOT, coverOut)}`);
-  }
+  await renderCover();
 };
 
 main().catch((e) => {

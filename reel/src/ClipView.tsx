@@ -96,7 +96,8 @@ const Media: React.FC<{clip: Pane & {type: 'video' | 'photo'}; grade: Grade; pre
             src={src}
             trimBefore={Math.round((startSec * fps) / 1)}
             playbackRate={speed}
-            volume={clip.volume ?? 1}
+            // カットの頭と終わりで音を短くフェードさせ、つなぎ目の「ブツッ」を防ぐ
+            volume={(f) => (clip.volume ?? 1) * Math.min(1, (f + 1) / 5, (durationInFrames - f) / 5)}
             style={mediaStyle}
           />
         ) : (

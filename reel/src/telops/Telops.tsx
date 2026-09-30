@@ -357,8 +357,19 @@ const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
         flexDirection: vertical ? 'row' : 'column',
         alignItems: 'center',
         gap: px * 0.45,
+        position: 'relative',
       }}
     >
+      {/* 背景がにぎやかでも読めるよう、ふちをぼかした暗い下地を敷く */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: `${-px * 0.9}px ${-px * 1.4}px`,
+          background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0) 72%)',
+          opacity: rule,
+          zIndex: -1,
+        }}
+      />
       {line('a')}
       <div
         style={{
@@ -387,12 +398,12 @@ const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
       {t.sub ? (
         <div
           style={{
-            fontSize: px * 0.3,
-            letterSpacing: '0.35em',
+            fontSize: px * 0.34,
+            letterSpacing: '0.25em',
             color: c.accent,
             opacity: interpolate(c.f, [20, 34], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}),
             writingMode: vertical ? 'vertical-rl' : 'horizontal-tb',
-            textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+            textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.6)',
           }}
         >
           {t.sub}
