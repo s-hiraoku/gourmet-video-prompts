@@ -30,5 +30,5 @@ export const telopFont = (t: Telop, theme: Required<Theme>): FontKey =>
 
 export const telopAnchor = (t: Telop) => ({
   x: (t.x ?? 0.5) * W,
-  y: (t.y ?? POSITION_Y[t.position ?? 'center']) * H,
+  y: (t.y ?? POSITION_Y[t.position ?? (t.type === 'caption' ? 'lower' : 'center')]) * H,
 });

@@ -32,10 +32,17 @@
 | ラーメン・中華 | rocknroll / dela | #E8453C | food | steam, onomatopoeia, zoom |
 | 焼肉・居酒屋・バー | kaku / dela | #FF7A1A | moody | speedlines, shake, flash |
 | カフェ・スイーツ・パン | maru / pop | #FF8FB1 | fresh | sparkle, hearts, slide, marker |
-| 和食・寿司・高級店 | mincho / mincho | #D4AF37 | warm | fade, slide, marker（擬音・集中線は控える） |
+| 和食・寿司・高級店 | mincho / mincho | #E9C46A | warm | caption 中心、fade, slide, slow_zoom（擬音・集中線・効果音は使わない） |
 | 韓国・エスニック | rounded / pop | #3DDC97 | food | sparkle, marker, whip |
 
 ユーザーの希望（フォント・テーマカラー）があればそちらを優先する。
+
+## 字幕テロップ（caption）の使い方
+- 構成案があるとき・高級店のときは、**1パート＝1つの caption** を出しっぱなしにする（パートの頭から終わりまで）。
+- 16文字前後で `\n` を入れて2〜3行に。句読点「。」「、」の後で切ると読みやすい。
+- 料理名・キーワード（例：お寿司、赤酢のシャリ）を `**…**` で強調色に。1つの caption で1か所まで。
+- 位置は料理の反対側。フックは料理が画面下なら `upper`、締めは `center` でもよい。
+- caption と短いテロップ（hook など）を同時に出さない。
 
 ## 置き場所
 - コマ一覧を見て、料理と反対側の空いている所へ置く（料理が下半分なら `upper`、上半分なら `lower`）。

@@ -13,11 +13,55 @@ export type TelopCtx = {
   size: number;
 };
 
-export const chars = (s: string) => Array.from(s);
+import {EMOJI_FONT} from '../fonts';
+
+const segmenter = new Intl.Segmenter('ja', {granularity: 'grapheme'});
+
+// 1文字ずつに分ける（❤️ や 👍🏻 のような絵文字も1文字として扱う）
+export const chars = (s: string) => Array.from(segmenter.segment(s), (x) => x.segment);
+
+export const isEmoji = (g: string) => /\p{Extended_Pictographic}/u.test(g);
+
+// 絵文字にはフチや影をつけず、カラー絵文字フォントで表示する
+export const emojiStyle: React.CSSProperties = {
+  fontFamily: EMOJI_FONT,
+  WebkitTextStroke: '0px transparent',
+  textShadow: 'none',
+  filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.35))',
+};
 
 // 全角=1、半角=0.6 として文字幅を見積もり、画面の横幅（maxW）に収まる文字サイズにする
 export const textUnits = (s: string) =>
-  Array.from(s).reduce((sum, ch) => sum + ((ch.codePointAt(0) ?? 0) > 0x2e80 ? 1 : 0.6), 0);
+  chars(s.replace(/\*\*/g, '')).reduce(
+    (sum, ch) => sum + (isEmoji(ch) || (ch.codePointAt(0) ?? 0) > 0x2e80 ? 1 : 0.6),
+    0,
+  );
+
+// **強調** を accent 色に、絵文字をカラー絵文字にして表示する
+export const Rich: React.FC<{text: string; accent: string; emphasis?: React.CSSProperties}> = ({text, accent, emphasis}) => (
+  <>
+    {text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
+      const strong = /^\*\*[^*]+\*\*$/.test(part);
+      const body = strong ? part.slice(2, -2) : part;
+      const runs: Array<{emoji: boolean; s: string}> = [];
+      for (const g of chars(body)) {
+        const e = isEmoji(g);
+        const last = runs[runs.length - 1];
+        if (last && last.emoji === e) last.s += g;
+        else runs.push({emoji: e, s: g});
+      }
+      return (
+        <span key={i} style={strong ? {color: accent, ...emphasis} : undefined}>
+          {runs.map((r, j) => (
+            <span key={j} style={r.emoji ? emojiStyle : undefined}>
+              {r.s}
+            </span>
+          ))}
+        </span>
+      );
+    })}
+  </>
+);
 
 export const fitPx = (base: number, text: string, maxW = 940, extra = 1.1) => {
   const widest = Math.max(...text.split('\n').map(textUnits), 1);

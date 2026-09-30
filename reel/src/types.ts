@@ -53,7 +53,8 @@ export type TelopType =
   | 'price' // 値札スタンプ
   | 'info' // 店舗情報カード
   | 'cta' // 保存してね
-  | 'label'; // 小さいタグ（PR、限定など）
+  | 'label' // 小さいタグ（PR、限定など）
+  | 'caption'; // 字幕テロップ：文章をそのまま読ませる（自動折り返し）
 
 export type Telop = {
   type: TelopType;

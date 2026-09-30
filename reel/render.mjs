@@ -23,7 +23,7 @@ const ENUMS = {
   transition: ['cut', 'fade', 'slide', 'wipe', 'flip', 'clock_wipe', 'whip', 'zoom', 'flash'],
   direction: ['left', 'right', 'up', 'down'],
   position: ['top', 'upper', 'center', 'lower', 'bottom'],
-  telop: ['hook', 'pop', 'slide', 'marker', 'typewriter', 'shake', 'onomatopoeia', 'price', 'info', 'cta', 'label'],
+  telop: ['hook', 'pop', 'slide', 'marker', 'typewriter', 'shake', 'onomatopoeia', 'price', 'info', 'cta', 'label', 'caption'],
   sticker: ['sparkle', 'steam', 'circle', 'arrow', 'speedlines', 'hearts'],
   sfx: ['pop', 'whoosh', 'ding', 'shutter', 'boing'],
   font: ['dela', 'rounded', 'maru', 'gothic', 'kaku', 'mincho', 'pop', 'hand', 'rocknroll'],
@@ -115,9 +115,21 @@ const main = async () => {
     checkEnum(w, 'font', t.font, ENUMS.font);
     inRange(w, t.start, t.end);
     if (!t.text) err(`${w}: text が空です。`);
-    const longest = Math.max(...String(t.text ?? '').split('\n').map((l) => [...l].length));
-    if (longest > 15) warn(`${w}: 1行 ${longest} 文字は長めです（15文字以内推奨）。`);
-    if (String(t.text ?? '').split('\n').length > 2 && t.type !== 'info') warn(`${w}: 3行以上あります。`);
+    const plain = String(t.text ?? '').replace(/\*\*/g, '');
+    if (t.type === 'caption') {
+      // 字幕テロップは読む速さ（1秒に約8文字）で表示時間をチェック
+      const len = [...new Intl.Segmenter('ja', {granularity: 'grapheme'}).segment(plain.replace(/\n/g, ''))].length;
+      const need = len / 8 + 0.3;
+      const longestLine = Math.max(...plain.split('\n').map((l) => [...new Intl.Segmenter('ja', {granularity: 'grapheme'}).segment(l)].length));
+      if (longestLine > 18) warn(`${w}: 1行 ${longestLine} 文字あり、文字が小さくなります（16文字前後で改行推奨）。`);
+      if (isNum(t.start) && isNum(t.end) && t.end - t.start < need) {
+        warn(`${w}: ${len} 文字を読むには約 ${need.toFixed(1)} 秒必要です（今 ${(t.end - t.start).toFixed(1)} 秒）。`);
+      }
+    } else {
+      const longest = Math.max(...plain.split('\n').map((l) => [...l].length));
+      if (longest > 15) warn(`${w}: 1行 ${longest} 文字は長めです（15文字以内推奨。文章を読ませるなら type: caption）。`);
+      if (plain.split('\n').length > 2 && t.type !== 'info') warn(`${w}: 3行以上あります。`);
+    }
     if (isNum(t.start) && isNum(t.end) && t.end - t.start < 0.8) warn(`${w}: 表示が ${(t.end - t.start).toFixed(2)} 秒と短く、読めない可能性があります。`);
   }
   for (const [i, s] of (plan.stickers ?? []).entries()) {
@@ -167,7 +179,7 @@ const main = async () => {
   if (!fs.existsSync(path.join(REEL_DIR, 'public', 'sfx', 'pop.wav'))) {
     execFileSync(process.execPath, [path.join(REEL_DIR, 'scripts', 'gen-sfx.mjs')], {stdio: 'inherit'});
   }
-  if (!fs.existsSync(path.join(REEL_DIR, 'public', 'fonts', 'dela'))) {
+  if (!fs.existsSync(path.join(REEL_DIR, 'public', 'fonts', 'emoji'))) {
     console.log('フォントをダウンロードしています（初回のみ）…');
     execFileSync(process.execPath, [path.join(REEL_DIR, 'scripts', 'fetch-fonts.mjs')], {
       stdio: 'inherit',

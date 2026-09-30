@@ -1,4 +1,5 @@
 import * as dela from '@remotion/google-fonts/DelaGothicOne';
+import * as emoji from '@remotion/google-fonts/NotoColorEmoji';
 import * as gothic from '@remotion/google-fonts/NotoSansJP';
 import * as hand from '@remotion/google-fonts/YuseiMagic';
 import * as kaku from '@remotion/google-fonts/ZenKakuGothicNew';
@@ -28,12 +29,15 @@ const MODULES: Record<FontKey, FontModule> = {
   rocknroll: rocknroll as unknown as FontModule,
 };
 
-const WEIGHTS = FONT_LIST as Record<FontKey, {module: string; weight: string}>;
+const EMOJI = emoji as unknown as FontModule;
+const WEIGHTS = FONT_LIST as Record<FontKey | 'emoji', {module: string; weight: string}>;
+
+export const EMOJI_FONT = '"Noto Color Emoji"';
 
 export const FONT_KEYS = Object.keys(MODULES) as FontKey[];
 
 export const fontFamily = (key: FontKey) =>
-  `"${MODULES[key].getInfo().fontFamily}", "Hiragino Sans", "Noto Sans JP", sans-serif`;
+  `"${MODULES[key].getInfo().fontFamily}", "Hiragino Sans", "Noto Sans JP", ${EMOJI_FONT}, sans-serif`;
 
 export const fontWeight = (key: FontKey) => Number(WEIGHTS[key].weight);
 
@@ -46,34 +50,44 @@ const parseRanges = (ranges: string): Array<[number, number]> =>
 
 const loaded = new Set<string>();
 
+const loadSubsets = (id: string, info: ReturnType<FontModule['getInfo']>, dir: string, weight: string, text: string) => {
+  const codes = [...new Set(Array.from(text).map((ch) => ch.codePointAt(0)!))];
+  for (const [subset, range] of Object.entries(info.unicodeRanges)) {
+    const key = `${id}/${subset}`;
+    if (loaded.has(key) || !parseRanges(range).some(([s, e]) => codes.some((c) => c >= s && c <= e))) {
+      continue;
+    }
+    loaded.add(key);
+    const handle = delayRender(`font ${key}`);
+    const face = new FontFace(info.fontFamily, `url(${staticFile(`fonts/${dir}/${subset}.woff2`)}) format('woff2')`, {
+      weight,
+      unicodeRange: range,
+    });
+    face
+      .load()
+      .then(() => {
+        document.fonts.add(face);
+        continueRender(handle);
+      })
+      .catch(() => {
+        // フォントがなくても止めずに、代わりのフォントで続ける
+        console.warn(`フォント ${key} が読み込めませんでした（node reel/scripts/fetch-fonts.mjs を実行してください）`);
+        continueRender(handle);
+      });
+  }
+};
+
 // 日本語フォントは100個以上のファイルに分かれているので、実際に使う文字を含むファイルだけ読み込む。
 // ファイルは scripts/fetch-fonts.mjs で public/fonts にダウンロード済みのものを使う（ネット不要）
 export const loadFonts = (usage: Map<FontKey, string>) => {
+  let all = '';
   for (const [key, text] of usage) {
-    const info = MODULES[key].getInfo();
-    const codes = [...new Set(Array.from(text + '0123456789').map((ch) => ch.codePointAt(0)!))];
-    for (const [subset, range] of Object.entries(info.unicodeRanges)) {
-      const id = `${key}/${subset}`;
-      if (loaded.has(id) || !parseRanges(range).some(([s, e]) => codes.some((c) => c >= s && c <= e))) {
-        continue;
-      }
-      loaded.add(id);
-      const handle = delayRender(`font ${id}`);
-      const face = new FontFace(info.fontFamily, `url(${staticFile(`fonts/${key}/${subset}.woff2`)}) format('woff2')`, {
-        weight: WEIGHTS[key].weight,
-        unicodeRange: range,
-      });
-      face
-        .load()
-        .then(() => {
-          document.fonts.add(face);
-          continueRender(handle);
-        })
-        .catch(() => {
-          // フォントがなくても止めずに、代わりのフォントで続ける
-          console.warn(`フォント ${id} が読み込めませんでした（node reel/scripts/fetch-fonts.mjs を実行してください）`);
-          continueRender(handle);
-        });
-    }
+    loadSubsets(key, MODULES[key].getInfo(), key, WEIGHTS[key].weight, text + '0123456789');
+    all += text;
+  }
+  // 絵文字（✨🍶😭❤️ など）はカラー絵文字フォントで表示する
+  const emojiChars = Array.from(all).filter((ch) => /\p{Extended_Pictographic}/u.test(ch)).join('');
+  if (emojiChars) {
+    loadSubsets('emoji', EMOJI.getInfo(), 'emoji', WEIGHTS.emoji.weight, emojiChars);
   }
 };

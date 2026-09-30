@@ -3,7 +3,7 @@ import {interpolate, random, useCurrentFrame, useVideoConfig} from 'remotion';
 import {fontFamily, fontWeight} from '../fonts';
 import {telopAnchor, telopFont} from '../theme';
 import type {Telop, Theme} from '../types';
-import {Centered, TelopCtx, chars, exitStyle, fitPx, lines, pop, strokeText} from './common';
+import {Centered, Rich, TelopCtx, chars, emojiStyle, exitStyle, fitPx, isEmoji, lines, pop, strokeText, textUnits} from './common';
 
 type Props = {t: Telop; theme: Required<Theme>};
 
@@ -26,6 +26,7 @@ const Hook: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
                   fontSize: px,
                   transform: `translateY(${(1 - s) * 60}px) scale(${s}) rotate(${(1 - s) * -12}deg)`,
                   ...strokeText(li === 0 ? c.accent : c.color, c.outline, px, 0.2),
+                  ...(isEmoji(ch) ? emojiStyle : {}),
                 }}
               >
                 {ch === ' ' ? ' ' : ch}
@@ -47,7 +48,7 @@ const Pop: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
     <div style={{opacity: e.opacity, transform: `${e.transform} scale(${0.6 + 0.4 * s})`}}>
       {lines(t.text).map((line, i) => (
         <div key={i} style={{fontSize: px, lineHeight: 1.25, ...strokeText(c.color, c.outline, px)}}>
-          {line}
+          <Rich text={line} accent={c.accent} />
         </div>
       ))}
     </div>
@@ -85,7 +86,7 @@ const Slide: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
                 transform: `translateX(${(1 - tx) * -80}px)`,
               }}
             >
-              {line}
+              <Rich text={line} accent={c.accent} />
             </div>
           </div>
         );
@@ -119,7 +120,7 @@ const Marker: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
               }}
             />
             <div style={{position: 'relative', fontSize: px, lineHeight: 1.2, ...strokeText(c.color, c.outline, px, 0.14)}}>
-              {line}
+              <Rich text={line} accent={c.accent} />
             </div>
           </div>
         );
@@ -150,9 +151,9 @@ const Typewriter: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
     >
       {/* 最終形の大きさを確保して、枠がガタつかないようにする */}
       <div style={{position: 'relative'}}>
-        <div style={{visibility: 'hidden'}}>{t.text}</div>
+        <div style={{visibility: 'hidden'}}><Rich text={t.text} accent={c.accent} /></div>
         <div style={{position: 'absolute', inset: 0}}>
-          {text}
+          <Rich text={text} accent={c.accent} />
           <span style={{opacity: cursor ? 1 : 0, color: c.accent}}>▍</span>
         </div>
       </div>
@@ -171,7 +172,7 @@ const Shake: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
     <div style={{opacity: e.opacity, transform: `${e.transform} scale(${s * pulse}) rotate(${jig}deg)`}}>
       {lines(t.text).map((line, i) => (
         <div key={i} style={{fontSize: px, lineHeight: 1.2, ...strokeText(c.accent, c.outline, px, 0.2)}}>
-          {line}
+          <Rich text={line} accent={c.accent} />
         </div>
       ))}
     </div>
@@ -201,6 +202,7 @@ const Onomatopoeia: React.FC<{t: Telop; c: TelopCtx; seed: string}> = ({t, c, se
                   WebkitTextStroke: `${px * 0.16}px ${c.color}`,
                   paintOrder: 'stroke fill',
                   filter: `drop-shadow(0 0 0 ${c.outline}) drop-shadow(${px * 0.05}px ${px * 0.05}px 0 ${c.outline})`,
+                  ...(isEmoji(ch) ? emojiStyle : {}),
                 }}
               >
                 {ch}
@@ -262,11 +264,68 @@ const Price: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
       >
         {lines(t.text).map((line, i) => (
           <div key={i} style={{fontSize: (d * 0.24) / Math.max(1, chars(line).length / 5), whiteSpace: 'nowrap'}}>
-            {line}
+            <Rich text={line} accent={c.accent} />
           </div>
         ))}
         {t.sub ? <div style={{fontSize: d * 0.09, marginTop: d * 0.03}}>{t.sub}</div> : null}
       </div>
+    </div>
+  );
+};
+
+// 字幕テロップ：文章をそのまま読ませる。自動で折り返し（句読点が行頭に来ないよう禁則処理）、**強調** と絵文字に対応。1文字ずつふわっと出る
+const Caption: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
+  const maxW = 900;
+  const text = t.text;
+  // まずは1行ずつ収まる大きさまで縮める。それでも入らない長い行だけ、バランスよく折り返す
+  const units = Math.max(...lines(text).map(textUnits), 1);
+  const px = Math.max(42, Math.min(58 * c.size, maxW / (units * 1.08)));
+  const box = pop(c, 0, 16);
+  const e = exitStyle(c, 8);
+  const perChar = Math.max(0.35, Math.min(1.2, 12 / Math.max(1, chars(text).length)));
+  let idx = 0;
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <div
+      style={{
+        opacity: e.opacity * Math.min(1, box * 1.5),
+        transform: `${e.transform} translateY(${(1 - box) * 30}px)`,
+        // 親要素の幅に左右されないよう、幅は文字数から決める
+        width: Math.min(maxW, units * px * 1.08) + px * 1.2,
+        boxSizing: 'border-box',
+        background: 'rgba(12,10,8,0.58)',
+        borderRadius: px * 0.45,
+        padding: `${px * 0.42}px ${px * 0.6}px`,
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+        fontSize: px,
+        lineHeight: 1.45,
+        color: c.color,
+        whiteSpace: 'pre-wrap',
+        lineBreak: 'strict',
+        textWrap: 'balance',
+        textAlign: 'center',
+        textShadow: '0 2px 6px rgba(0,0,0,0.5)',
+      }}
+    >
+      {parts.map((part, pi) => {
+        const strong = /^\*\*[^*]+\*\*$/.test(part);
+        const body = strong ? part.slice(2, -2) : part;
+        return chars(body).map((g, gi) => {
+          const k = interpolate(c.f - 4 - idx++ * perChar, [0, 6], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+          return (
+            <span
+              key={`${pi}-${gi}`}
+              style={{
+                opacity: k,
+                ...(strong ? {color: c.accent} : {}),
+                ...(isEmoji(g) ? emojiStyle : {}),
+              }}
+            >
+              {g}
+            </span>
+          );
+        });
+      })}
     </div>
   );
 };
@@ -305,7 +364,7 @@ const Info: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
     >
       <div style={{display: 'flex', alignItems: 'center', gap: px * 0.25, fontSize: px, color: '#1E1E1E'}}>
         <PinIcon size={px * 1.05} color={c.accent === '#FFFFFF' ? '#E8453C' : c.accent} />
-        {t.text}
+        <Rich text={t.text} accent={c.accent} />
       </div>
       {subs.map((line, i) => {
         const k = pop(c, 5 + i * 3, 15);
@@ -320,7 +379,7 @@ const Info: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
               transform: `translateX(${(1 - k) * 40}px)`,
             }}
           >
-            {line}
+            <Rich text={line} accent={c.accent} />
           </div>
         );
       })}
@@ -366,7 +425,7 @@ const Cta: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
       <div style={{transform: `scale(${0.8 + 0.2 * bounce}) rotate(${(1 - bounce) * -20}deg)`, display: 'flex'}}>
         <BookmarkIcon size={px * 1.1} fill={fill} color={c.outline} />
       </div>
-      {t.text}
+      <Rich text={t.text} accent={c.accent} />
     </div>
   );
 };
@@ -389,7 +448,7 @@ const Label: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
         letterSpacing: '0.05em',
       }}
     >
-      {t.text}
+      <Rich text={t.text} accent={c.accent} />
     </div>
   );
 };
@@ -434,6 +493,8 @@ export const TelopView: React.FC<Props> = ({t, theme}) => {
         return <Cta t={t} c={c} />;
       case 'label':
         return <Label t={t} c={c} />;
+      case 'caption':
+        return <Caption t={t} c={c} />;
       default:
         return <Pop t={t} c={c} />;
     }
