@@ -29,7 +29,7 @@
 | motion | | `none` `slow_zoom_in` `slow_zoom_out` `punch_in`（冒頭でグッと寄る） `pan_left` `pan_right` `pan_up` `pan_down` `shake`（衝撃）。写真の標準は `slow_zoom_in` |
 | focus | | 縦に切り抜くときの中心 `{x, y}`（0〜1）。横長素材では料理の位置に必ず合わせる |
 | zoom | | 1.0〜1.6。寄りで切り抜く |
-| volume | | 原音 0〜1（標準 1） |
+| volume | | 原音 0〜1（標準 1）。カットの頭と終わりは自動で短くフェードする |
 | grade | | `food` `warm` `fresh` `moody` `none`（標準は theme.grade） |
 | transition | | 次のクリップへのつなぎ `{type, duration?, direction?}`。type: `cut` `fade` `slide` `wipe` `flip` `clock_wipe` `whip` `zoom` `flash`、direction: `left` `right` `up` `down` |
 
@@ -57,7 +57,7 @@
 | font / color / accent | | テーマを上書き |
 | size | | 大きさ倍率（標準 1）。長い文は自動で縮む |
 | rotate | | 傾き（度） |
-| vertical | | `title` を縦書きにする（右寄せなら x 0.8 前後） |
+| vertical | | `title` / `plain` を縦書きにする（被写体の左右の余白、x 0.15〜0.25 か 0.8〜0.85） |
 
 | type | 見た目・動き | 使いどころ |
 |---|---|---|
@@ -72,6 +72,7 @@
 | info | ピン付きの白カード（text=店名, sub=駅・時間など） | 締めの店舗情報 |
 | cta | しおりアイコン付きのボタン | 「保存して行ってみて」 |
 | label | 小さい枠付きタグ | PR、限定、数量限定 |
+| plain | **基本のテロップ**。帯なしの白文字（影だけ）。1カット1フレーズで、カットの切り替わりと同時に出す。`vertical: true` で縦書き。font は `gothic_m` がおすすめ | ほぼすべて |
 | title | 上品なメインコピー。文字がぼかしから浮かび、字間がゆっくり締まる。金の細線つき。`vertical: true` で縦書き、`sub` で小さい添え書き | 高級店の冒頭・締めのコピー |
 | caption | 半透明の帯に文章。1文字ずつふわっと出る。長い行は自動で縮小・バランスよく折り返し（標準位置 `lower`） | 字幕テロップ。構成案のテロップ、高級店のナレーション的な文 |
 
@@ -92,5 +93,7 @@
 
 ## その他
 - `bgm`: `{file, volume?, start?}`（materials にある音楽ファイル。インスタの曲を使う場合は入れない）
-- `cover`: `{time}` → その瞬間を `output/cover.jpg` に書き出す
-- `theme.font` / `headFont`: `dela`（極太） `rounded`（丸ゴ） `maru`（やわらか丸ゴ） `gothic`（ゴシック） `kaku`（すっきりゴシック） `mincho`（明朝） `pop`（ポップ） `hand`（手書き風） `rocknroll`（元気）
+- `cover`: `{time, telops?}` → その瞬間を `output/cover.jpg` に書き出す。`telops` を書くと、動画のテロップの代わりにカバー専用の文字が入る（動画には出ない）
+  - 例: `{"time": 1.9, "telops": [{"type": "title", "text": "人生で一番の\n江戸前すし", "sub": "兵庫・明石　店名", "position": "top", "y": 0.21}]}`
+  - プロフィールの一覧では縦 3:4 に切り抜かれるので、文字は y 0.15〜0.85 の間に置く
+- `theme.font` / `headFont`: `dela`（極太） `rounded`（丸ゴ） `maru`（やわらか丸ゴ） `gothic`（ゴシック・極太） `gothic_m`（ゴシック・中太。plain 向け） `kaku`（すっきりゴシック） `mincho`（明朝） `pop`（ポップ） `hand`（手書き風） `rocknroll`（元気）

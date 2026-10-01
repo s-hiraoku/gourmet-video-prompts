@@ -27,8 +27,17 @@ export const totalSeconds = (plan: Plan) => plan.clips.reduce((sum, c) => sum + 
 
 const toFrames = (sec: number, fps: number) => Math.round(sec * fps);
 
-export const Reel: React.FC<Plan> = (plan) => {
+export const Reel: React.FC<Plan> = (props) => {
   const {fps, durationInFrames} = useVideoConfig();
+  // カバー画像モード：動画のテロップ・ステッカーの代わりに cover.telops を、アニメーションが終わった状態で出す
+  const coverTelops = props._cover ? props.cover?.telops : undefined;
+  const plan: Plan = coverTelops
+    ? {
+        ...props,
+        stickers: [],
+        telops: coverTelops.map((t) => ({...t, start: Math.max(0, props.cover!.time - 2), end: totalSeconds(props)})),
+      }
+    : props;
   const theme = resolveTheme(plan);
   const trans = transitionSecs(plan);
 

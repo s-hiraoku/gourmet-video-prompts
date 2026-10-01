@@ -224,6 +224,7 @@ def main() -> int:
 
     files = a.files or sorted(p for p in (ROOT / "materials").iterdir() if p.is_file() and not p.name.startswith("."))
     rng = tuple(float(x) for x in a.range.split(":")) if a.range else None
+    a.out = a.out.resolve()
     a.out.mkdir(parents=True, exist_ok=True)
 
     videos = [f for f in files if f.suffix.lower() in VIDEO_EXTS]

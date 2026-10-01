@@ -357,8 +357,19 @@ const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
         flexDirection: vertical ? 'row' : 'column',
         alignItems: 'center',
         gap: px * 0.45,
+        position: 'relative',
       }}
     >
+      {/* 背景がにぎやかでも読めるよう、ふちをぼかした暗い下地を敷く */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: `${-px * 0.9}px ${-px * 1.4}px`,
+          background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0) 72%)',
+          opacity: rule,
+          zIndex: -1,
+        }}
+      />
       {line('a')}
       <div
         style={{
@@ -387,18 +398,49 @@ const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
       {t.sub ? (
         <div
           style={{
-            fontSize: px * 0.3,
-            letterSpacing: '0.35em',
+            fontSize: px * 0.34,
+            letterSpacing: '0.25em',
             color: c.accent,
             opacity: interpolate(c.f, [20, 34], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}),
             writingMode: vertical ? 'vertical-rl' : 'horizontal-tb',
-            textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+            textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.6)',
           }}
         >
           {t.sub}
         </div>
       ) : null}
       {line('b')}
+    </div>
+  );
+};
+
+// 帯なしの白文字：インスタで一番よく見る、料理を隠さない控えめなテロップ。
+// 1カット1フレーズで、カットの切り替えと一緒に出す想定。縦書き（vertical）可
+const Plain: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
+  const vertical = !!t.vertical;
+  const px = fitPx(62 * c.size, t.text, vertical ? 1100 : 940, 1.1);
+  const k = interpolate(c.f, [0, 5], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic)});
+  const out = interpolate(c.f, [c.len - 4, c.len], [1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  return (
+    <div
+      style={{
+        opacity: k * out,
+        transform: vertical ? `translateY(${(1 - k) * -14}px)` : `translateY(${(1 - k) * 14}px)`,
+        filter: `blur(${(1 - k) * 4}px)`,
+        writingMode: vertical ? 'vertical-rl' : 'horizontal-tb',
+        fontSize: px,
+        lineHeight: 1.45,
+        letterSpacing: vertical ? '0.12em' : '0.04em',
+        color: c.color,
+        textShadow: '0 0 2px rgba(0,0,0,0.55), 0 2px 10px rgba(0,0,0,0.5)',
+        whiteSpace: 'pre',
+      }}
+    >
+      {lines(t.text).map((l, i) => (
+        <div key={i}>
+          <Rich text={l} accent={c.accent} />
+        </div>
+      ))}
     </div>
   );
 };
@@ -570,6 +612,8 @@ export const TelopView: React.FC<Props> = ({t, theme}) => {
         return <Caption t={t} c={c} />;
       case 'title':
         return <Title t={t} c={c} />;
+      case 'plain':
+        return <Plain t={t} c={c} />;
       default:
         return <Pop t={t} c={c} />;
     }

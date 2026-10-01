@@ -3,6 +3,7 @@
 //   node reel/render.mjs plan.json                 動画を書き出す（output/reel.mp4）
 //   node reel/render.mjs plan.json --check         中身のチェックだけ
 //   node reel/render.mjs plan.json --stills 0.5,3  指定秒の静止画だけ書き出す（確認用・速い）
+//   node reel/render.mjs plan.json --cover         カバー画像だけ書き出す
 //   オプション: --out 出力先.mp4 / --materials 素材フォルダ
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
@@ -23,10 +24,10 @@ const ENUMS = {
   transition: ['cut', 'fade', 'slide', 'wipe', 'flip', 'clock_wipe', 'whip', 'zoom', 'flash'],
   direction: ['left', 'right', 'up', 'down'],
   position: ['top', 'upper', 'center', 'lower', 'bottom'],
-  telop: ['hook', 'pop', 'slide', 'marker', 'typewriter', 'shake', 'onomatopoeia', 'price', 'info', 'cta', 'label', 'caption', 'title'],
+  telop: ['hook', 'pop', 'slide', 'marker', 'typewriter', 'shake', 'onomatopoeia', 'price', 'info', 'cta', 'label', 'caption', 'title', 'plain'],
   sticker: ['sparkle', 'steam', 'circle', 'arrow', 'speedlines', 'hearts', 'save_tap'],
   sfx: ['pop', 'whoosh', 'ding', 'shutter', 'boing'],
-  font: ['dela', 'rounded', 'maru', 'gothic', 'kaku', 'mincho', 'pop', 'hand', 'rocknroll'],
+  font: ['dela', 'rounded', 'maru', 'gothic', 'kaku', 'mincho', 'pop', 'hand', 'rocknroll', 'gothic_m'],
 };
 
 const args = process.argv.slice(2);
@@ -127,7 +128,7 @@ const main = async () => {
     inRange(w, t.start, t.end);
     if (!t.text) err(`${w}: text が空です。`);
     const plain = String(t.text ?? '').replace(/\*\*/g, '');
-    if (t.type === 'caption') {
+    if (t.type === 'caption' || t.type === 'plain') {
       // 字幕テロップは読む速さ（1秒に約8文字）で表示時間をチェック
       const len = [...new Intl.Segmenter('ja', {granularity: 'grapheme'}).segment(plain.replace(/\n/g, ''))].length;
       const need = len / 8 + 0.3;
@@ -145,6 +146,17 @@ const main = async () => {
   }
   // 指示レビュー用の自動チェック（制作方針「指示のレビューと代替案」）
   const telops = plan.telops ?? [];
+  // テンポ：長すぎるカットと、何カットにもまたがるテロップ（1カット1フレーズが基本）
+  for (const [i, c] of (plan.clips ?? []).entries()) {
+    if (isNum(c.duration) && c.duration > 3) warn(`clips[${i}]: ${c.duration}秒は長めです（1カット1.0〜2.5秒が目安。動きのあるスローの見せ場は除く）。`);
+  }
+  const cutsAt = [0];
+  (plan.clips ?? []).forEach((c) => cutsAt.push(cutsAt[cutsAt.length - 1] + (isNum(c.duration) ? c.duration : 0)));
+  for (const [i, t] of telops.entries()) {
+    if (['label', 'title', 'info'].includes(t.type) || !isNum(t.start) || !isNum(t.end)) continue;
+    const spanned = cutsAt.slice(0, -1).filter((s, k) => s < t.end - 0.05 && cutsAt[k + 1] > t.start + 0.05).length;
+    if (spanned >= 3) warn(`telops[${i}]: ${spanned}カットにまたがっています（フレーズに分けて1カット1フレーズにするとテンポが出ます）。`);
+  }
   const RISKY = ['日本一', '世界一', '宇宙一', '絶対', '最強', '最高級', '必ず', '100%', '完璧', '痩せる', '健康に良い', '美肌', '効く', '治る', '業界初', 'No.1', 'ナンバーワン'];
   for (const [i, t] of telops.entries()) {
     const hit = RISKY.filter((word) => String(t.text ?? '').includes(word) || String(t.sub ?? '').includes(word));
@@ -214,7 +226,8 @@ const main = async () => {
   if (!fs.existsSync(path.join(REEL_DIR, 'public', 'sfx', 'pop.wav'))) {
     execFileSync(process.execPath, [path.join(REEL_DIR, 'scripts', 'gen-sfx.mjs')], {stdio: 'inherit'});
   }
-  if (!fs.existsSync(path.join(REEL_DIR, 'public', 'fonts', 'emoji'))) {
+  const fontKeys = Object.keys(JSON.parse(fs.readFileSync(path.join(REEL_DIR, 'src', 'font-list.json'), 'utf8')));
+  if (fontKeys.some((k) => !fs.existsSync(path.join(REEL_DIR, 'public', 'fonts', k)))) {
     console.log('フォントをダウンロードしています（初回のみ）…');
     execFileSync(process.execPath, [path.join(REEL_DIR, 'scripts', 'fetch-fonts.mjs')], {
       stdio: 'inherit',
@@ -230,6 +243,22 @@ const main = async () => {
   console.log('準備中…');
   const serveUrl = await bundle({entryPoint: path.join(REEL_DIR, 'src', 'index.ts'), publicDir: path.join(REEL_DIR, 'public')});
   const composition = await selectComposition({serveUrl, id: 'Reel', inputProps: plan, browserExecutable});
+
+  // カバー画像（cover.telops があればその文字入り）。props はコンポジション選択時に確定するので選び直す
+  const renderCover = async (dir = path.join(ROOT, 'output')) => {
+    if (!plan.cover || !isNum(plan.cover.time)) return;
+    const coverOut = path.join(dir, 'cover.jpg');
+    const coverProps = {...plan, _cover: true};
+    const coverComposition = await selectComposition({serveUrl, id: 'Reel', inputProps: coverProps, browserExecutable});
+    const frame = Math.min(coverComposition.durationInFrames - 1, Math.round(plan.cover.time * fps));
+    fs.mkdirSync(dir, {recursive: true});
+    await renderStill({serveUrl, composition: coverComposition, inputProps: coverProps, frame, output: coverOut, imageFormat: 'jpeg', jpegQuality: 95, browserExecutable});
+    console.log(`カバー画像: ${path.relative(ROOT, coverOut)}`);
+  };
+  if (args.includes('--cover')) {
+    await renderCover();
+    return;
+  }
 
   const stills = opt('--stills');
   if (stills) {
@@ -271,12 +300,7 @@ const main = async () => {
   });
   console.log(`完成: ${path.relative(ROOT, out)}`);
 
-  if (plan.cover && isNum(plan.cover.time)) {
-    const coverOut = path.join(path.dirname(out), 'cover.jpg');
-    const frame = Math.min(composition.durationInFrames - 1, Math.round(plan.cover.time * fps));
-    await renderStill({serveUrl, composition, inputProps: plan, frame, output: coverOut, imageFormat: 'jpeg', jpegQuality: 95, browserExecutable});
-    console.log(`カバー画像: ${path.relative(ROOT, coverOut)}`);
-  }
+  await renderCover();
 };
 
 main().catch((e) => {

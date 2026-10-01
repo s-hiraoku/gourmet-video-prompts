@@ -63,7 +63,8 @@ export type TelopType =
   | 'cta' // 保存してね
   | 'label' // 小さいタグ（PR、限定など）
   | 'caption' // 字幕テロップ：文章をそのまま読ませる（自動折り返し）
-  | 'title'; // 上品なメインコピー（ぼかしから浮かぶ・字間が締まる・縦書き可）
+  | 'title' // 上品なメインコピー（ぼかしから浮かぶ・字間が締まる・縦書き可）
+  | 'plain'; // 帯なしの白文字（影だけ）。1カット1フレーズ向け。縦書き可
 
 export type Telop = {
   type: TelopType;
@@ -79,7 +80,7 @@ export type Telop = {
   accent?: string;
   size?: number; // 文字の大きさ倍率（1 = 標準）
   rotate?: number; // 度
-  vertical?: boolean; // title を縦書きにする
+  vertical?: boolean; // title / plain を縦書きにする
 };
 
 export type StickerType = 'sparkle' | 'steam' | 'circle' | 'arrow' | 'speedlines' | 'hearts' | 'save_tap';
@@ -110,7 +111,8 @@ export type FontKey =
   | 'mincho' // Shippori Mincho: 明朝。和食・高級店
   | 'pop' // Mochiy Pop One: ポップ
   | 'hand' // Yusei Magic: 手書き風
-  | 'rocknroll'; // RocknRoll One: 元気・ラーメン
+  | 'rocknroll' // RocknRoll One: 元気・ラーメン
+  | 'gothic_m'; // Noto Sans JP（中くらいの太さ）: 帯なしのプレーンなテロップ向け
 
 export type Theme = {
   font?: FontKey; // 基本フォント
@@ -130,5 +132,6 @@ export type Plan = {
   stickers?: Sticker[];
   sfx?: Sfx[];
   bgm?: {file: string; volume?: number; start?: number};
-  cover?: {time: number};
+  cover?: {time: number; telops?: Telop[]}; // telops を書くとカバー画像だけに入る文字（動画には出ない）
+  _cover?: boolean; // render.mjs がカバー画像を書き出すときに付ける（手で書かない）
 };
