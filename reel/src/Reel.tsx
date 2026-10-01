@@ -7,7 +7,7 @@ import {StickerView} from './stickers/Stickers';
 import {TelopView} from './telops/Telops';
 import {resolveTheme, telopFont} from './theme';
 import {DEFAULT_TRANSITION_SEC, makePresentation, timing} from './transitions';
-import type {FontKey, Plan} from './types';
+import type {Clip, FontKey, Plan} from './types';
 
 export const FPS = 30;
 
@@ -56,6 +56,17 @@ export const Reel: React.FC<Plan> = (props) => {
   const cutFrames = cuts.map((s) => toFrames(s, fps));
   const transFrames = trans.map((s) => toFrames(s, fps));
 
+  // BGM があるときは、店内の原音を小さくして音楽を主役にする
+  const duck = plan.bgm ? plan.bgm.clipVolume ?? 0.3 : 1;
+  const withBgmDucking = (clip: Clip): Clip =>
+    duck === 1
+      ? clip
+      : {
+          ...clip,
+          volume: (clip.volume ?? 1) * duck,
+          items: clip.items?.map((it, j) => ({...it, volume: (it.volume ?? (j === 0 ? 1 : 0)) * duck})),
+        };
+
   const series: React.ReactNode[] = [];
   plan.clips.forEach((clip, i) => {
     // 前のつなぎの半分だけ早く始め、次のつなぎの半分だけ長く映す（重なり＝つなぎの長さ）
@@ -64,7 +75,7 @@ export const Reel: React.FC<Plan> = (props) => {
     const len = cutFrames[i + 1] - cutFrames[i] + pre + post;
     series.push(
       <TransitionSeries.Sequence key={`c${i}`} durationInFrames={Math.max(1, len)}>
-        <ClipView clip={clip} grade={clip.grade ?? theme.grade} preRoll={pre / fps} />
+        <ClipView clip={withBgmDucking(clip)} grade={clip.grade ?? theme.grade} preRoll={pre / fps} />
       </TransitionSeries.Sequence>,
     );
     if (transFrames[i] > 0) {

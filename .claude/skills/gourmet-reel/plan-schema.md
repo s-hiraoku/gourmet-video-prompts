@@ -92,7 +92,10 @@
 `{type, at, volume?}`。type: `pop`（ポン） `whoosh`（シュッ） `ding`（チーン） `shutter`（カシャ） `boing`（ボヨン）
 
 ## その他
-- `bgm`: `{file, volume?, start?}`（materials にある音楽ファイル。インスタの曲を使う場合は入れない）
+- `bgm`: `{file, volume?, start?, clipVolume?}`（materials にある音楽ファイル。インスタの曲を使う場合は入れない）
+  - `volume`：曲の音量（標準 0.35。make_bgm.py の曲なら 0.8 前後）
+  - `clipVolume`：BGM があるときの店内の原音の倍率（標準 0.3）
+  - カット点は `scripts/sync_cuts.py` で拍に合わせる
 - `cover`: `{time, telops?}` → その瞬間を `output/cover.jpg` に書き出す。`telops` を書くと、動画のテロップの代わりにカバー専用の文字が入る（動画には出ない）
   - 例: `{"time": 1.9, "telops": [{"type": "title", "text": "人生で一番の\n江戸前すし", "sub": "兵庫・明石　店名", "position": "top", "y": 0.21}]}`
   - プロフィールの一覧では縦 3:4 に切り抜かれるので、文字は y 0.15〜0.85 の間に置く

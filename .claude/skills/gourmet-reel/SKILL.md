@@ -61,6 +61,23 @@ python3 scripts/enhance.py
 - クリップの `duration` の合計を、尺（15秒）と **ぴったり** 一致させる。
 - 動画は `in + duration × speed` が素材の長さを超えないこと。
 
+### 4.5 BGM を入れてカットを拍に合わせる
+- ユーザーが曲（フリー素材の mp3 など）を渡してきたら `materials/` に置いて拍を調べる：
+  ```bash
+  python3 scripts/beats.py materials/bgm.mp3            # 曲の途中から使うなら --start 秒
+  ```
+- 曲がなければオリジナル曲を作る（著作権の心配なし。拍の位置も分かる）：
+  ```bash
+  python3 scripts/make_bgm.py --seconds 20 --style lofi_jazz   # 高級店・夜・和食。カフェなどは --style bossa
+  ```
+- カット点を拍に合わせる（テロップも一緒に動く。読む時間・素材の長さ・1カット0.8秒以上を守る）：
+  ```bash
+  python3 scripts/sync_cuts.py work/plan.json --beats materials/bgm_lofi_jazz.beats.json
+  ```
+  合わせられない時は「合わせられるテンポ」が表示されるので、`make_bgm.py --bpm` で作り直してもう一度。
+- plan.json の `bgm` に `volume`（曲の音量、0.8 前後）と `clipVolume`（店内の原音の倍率、0.3 前後）を書く。
+- 書き出し後に音量を確認：平均 -14〜-16 dB、最大 -1 dB 未満が目安。
+
 ### 5. チェック → 静止画で確認
 ```bash
 node reel/render.mjs work/plan.json --check
