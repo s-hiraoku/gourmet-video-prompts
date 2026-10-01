@@ -27,6 +27,7 @@ const MODULES: Record<FontKey, FontModule> = {
   pop: pop as unknown as FontModule,
   hand: hand as unknown as FontModule,
   rocknroll: rocknroll as unknown as FontModule,
+  gothic_m: gothic as unknown as FontModule,
 };
 
 const EMOJI = emoji as unknown as FontModule;

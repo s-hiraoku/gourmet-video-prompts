@@ -35,6 +35,10 @@
     "module": "RocknRollOne",
     "weight": "400"
   },
+  "gothic_m": {
+    "module": "NotoSansJP",
+    "weight": "500"
+  },
   "emoji": {
     "module": "NotoColorEmoji",
     "weight": "400"

@@ -414,6 +414,37 @@ const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
   );
 };
 
+// 帯なしの白文字：インスタで一番よく見る、料理を隠さない控えめなテロップ。
+// 1カット1フレーズで、カットの切り替えと一緒に出す想定。縦書き（vertical）可
+const Plain: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
+  const vertical = !!t.vertical;
+  const px = fitPx(62 * c.size, t.text, vertical ? 1100 : 940, 1.1);
+  const k = interpolate(c.f, [0, 5], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic)});
+  const out = interpolate(c.f, [c.len - 4, c.len], [1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  return (
+    <div
+      style={{
+        opacity: k * out,
+        transform: vertical ? `translateY(${(1 - k) * -14}px)` : `translateY(${(1 - k) * 14}px)`,
+        filter: `blur(${(1 - k) * 4}px)`,
+        writingMode: vertical ? 'vertical-rl' : 'horizontal-tb',
+        fontSize: px,
+        lineHeight: 1.45,
+        letterSpacing: vertical ? '0.12em' : '0.04em',
+        color: c.color,
+        textShadow: '0 0 2px rgba(0,0,0,0.55), 0 2px 10px rgba(0,0,0,0.5)',
+        whiteSpace: 'pre',
+      }}
+    >
+      {lines(t.text).map((l, i) => (
+        <div key={i}>
+          <Rich text={l} accent={c.accent} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const PinIcon: React.FC<{size: number; color: string}> = ({size, color}) => (
   <svg width={size} height={size} viewBox="0 0 24 24">
     <path
@@ -581,6 +612,8 @@ export const TelopView: React.FC<Props> = ({t, theme}) => {
         return <Caption t={t} c={c} />;
       case 'title':
         return <Title t={t} c={c} />;
+      case 'plain':
+        return <Plain t={t} c={c} />;
       default:
         return <Pop t={t} c={c} />;
     }
