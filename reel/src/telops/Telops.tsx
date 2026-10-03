@@ -273,7 +273,7 @@ const Price: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
   );
 };
 
-// 字幕テロップ：文章をそのまま読ませる。自動で折り返し（句読点が行頭に来ないよう禁則処理）、**強調** と絵文字に対応。1文字ずつふわっと出る
+// 字幕テロップ：帯なしの白文字で文章をそのまま読ませる。自動で折り返し（句読点が行頭に来ないよう禁則処理）、**強調** と絵文字に対応。1文字ずつふわっと出る
 const Caption: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
   const maxW = 900;
   const text = t.text;
@@ -293,10 +293,7 @@ const Caption: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
         // 親要素の幅に左右されないよう、幅は文字数から決める
         width: Math.min(maxW, units * px * 1.08) + px * 1.2,
         boxSizing: 'border-box',
-        background: 'rgba(12,10,8,0.58)',
-        borderRadius: px * 0.45,
-        padding: `${px * 0.42}px ${px * 0.6}px`,
-        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+        padding: `0 ${px * 0.6}px`,
         fontSize: px,
         lineHeight: 1.45,
         color: c.color,
@@ -304,7 +301,8 @@ const Caption: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
         lineBreak: 'strict',
         textWrap: 'balance',
         textAlign: 'center',
-        textShadow: '0 2px 6px rgba(0,0,0,0.5)',
+        // 帯は敷かない（料理が見えにくくなる）。影だけで読ませる
+        textShadow: '0 0 2px rgba(0,0,0,0.6), 0 2px 10px rgba(0,0,0,0.55)',
       }}
     >
       {parts.map((part, pi) => {
@@ -360,16 +358,6 @@ const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
         position: 'relative',
       }}
     >
-      {/* 背景がにぎやかでも読めるよう、ふちをぼかした暗い下地を敷く */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: `${-px * 0.9}px ${-px * 1.4}px`,
-          background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0) 72%)',
-          opacity: rule,
-          zIndex: -1,
-        }}
-      />
       {line('a')}
       <div
         style={{
@@ -378,7 +366,7 @@ const Title: React.FC<{t: Telop; c: TelopCtx}> = ({t, c}) => {
           lineHeight: 1.5,
           letterSpacing: `${spacing}em`,
           color: c.color,
-          textShadow: '0 2px 18px rgba(0,0,0,0.55), 0 0 2px rgba(0,0,0,0.4)',
+          textShadow: '0 0 2px rgba(0,0,0,0.55), 0 2px 18px rgba(0,0,0,0.6)',
           whiteSpace: 'pre',
         }}
       >
