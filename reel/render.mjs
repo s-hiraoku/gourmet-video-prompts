@@ -127,6 +127,7 @@ const main = async () => {
     checkEnum(w, 'font', t.font, ENUMS.font);
     inRange(w, t.start, t.end);
     if (!t.text) err(`${w}: text が空です。`);
+    if (['slide', 'typewriter', 'label'].includes(t.type)) warn(`${w}: type: ${t.type} は文字の後ろに帯が出ます（テロップは文字だけにする。plain などに変更）。`);
     const plain = String(t.text ?? '').replace(/\*\*/g, '');
     if (t.type === 'caption' || t.type === 'plain') {
       // 字幕テロップは読む速さ（1秒に約8文字）で表示時間をチェック
